@@ -1,0 +1,111 @@
+<main class="shell">
+  <section class="hero">
+    <div class="hero-copy">
+      <h1 class="brand-mark">
+        <span class="sr-only">ClimaScore</span>
+        <img class="brand-logo" src="logo.png" alt="ClimaScore" />
+      </h1>
+      <p class="lede">
+        Classe les grandes villes selon l’exposition au soleil, la pluie, la chaleur d’été
+      </p>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <section class="state-card">Chargement des données...</section>
+  } @else if (error()) {
+    <section class="state-card state-card--error">
+      <h2>Données indisponibles</h2>
+      <p>{{ error() }}</p>
+      <p>Vérifie que <code>public/data/dashboard.json</code> existe, puis recharge la page.</p>
+    </section>
+  } @else if (!meta()?.ready) {
+    <section class="state-card">
+      <h2>Jeu de données vide</h2>
+      <p>
+        Le fichier <code>public/data/dashboard.json</code> ne contient pas encore de villes
+        exploitables.
+      </p>
+      <p>Exécute <code>npm run etl</code> pour régénérer les métriques.</p>
+    </section>
+  } @else {
+    <section class="layout">
+      <app-controls-panel
+        [criteriaAvailable]="(meta()?.criteria ?? []).length > 0"
+        [activeCriteriaCount]="activeCriteriaCount()"
+        [query]="query()"
+        [showOnlyFavorites]="showOnlyFavorites()"
+        [favoriteCount]="favoriteCount()"
+        [presets]="meta()?.presets ?? []"
+        [selectedPresetId]="selectedPresetId()"
+        [presetFeedback]="presetFeedback()"
+        [presetFeedbackKind]="presetFeedbackKind()"
+        (criteriaInfoOpen)="openCriteriaInfo()"
+        (queryChange)="query.set($event)"
+        (showOnlyFavoritesChange)="setShowOnlyFavorites($event)"
+        (presetSelect)="applyPreset($event)"
+        (presetDelete)="deletePreset($event)"
+        (scoreCustomizationOpen)="openScoreCustomization()"
+        (climateFinderOpen)="openClimateFinder()"
+      />
+
+      <app-ranking-table
+        [cities]="filteredScoredCities()"
+        [selectedSlug]="selectedCity()?.slug ?? null"
+        [hiddenColumns]="hiddenColumns()"
+        [sortKey]="sortKey()"
+        [sortDirection]="sortDirection()"
+        [favorites]="favorites()"
+        [criteria]="meta()?.criteria ?? []"
+        (citySelect)="selectCity($event)"
+        (favoriteToggle)="toggleFavorite($event)"
+        (sortChange)="setSort($event)"
+        (columnHide)="hideColumn($event)"
+        (hiddenColumnsReset)="showHiddenColumns()"
+      />
+
+      <app-city-detail
+        [city]="selectedCity()"
+        [compareCity]="compareCity()"
+        [compareOptions]="compareOptions()"
+        [criteriaDefinitions]="meta()?.criteria ?? []"
+        [criteriaState]="criteria()"
+        [favorites]="favorites()"
+        [totalCityCount]="meta()?.rowCount ?? 0"
+        (compareCityChange)="selectCompareCity($event)"
+        (favoriteToggle)="toggleFavorite($event)"
+      />
+    </section>
+
+    @if (scoreCustomizationOpen()) {
+      <app-score-customization-modal
+        [criteriaDefinitions]="meta()?.criteria ?? []"
+        [criteriaState]="draftCriteria()"
+        [presetNameDraft]="presetNameDraft()"
+        (close)="closeScoreCustomization()"
+        (presetNameDraftChange)="presetNameDraft.set($event)"
+        (enabledChange)="toggleEnabled($event.metricKey, $event.enabled)"
+        (weightChange)="updateWeight($event.metricKey, $event.rawWeight)"
+        (directionChange)="updateDirection($event.metricKey, $event.direction)"
+        (apply)="applyScoreCustomization()"
+        (save)="saveCurrentPreset()"
+      />
+    }
+
+    @if (criteriaInfoOpen()) {
+      <app-criteria-info-modal
+        [criteriaDefinitions]="meta()?.criteria ?? []"
+        (close)="closeCriteriaInfo()"
+      />
+    }
+
+    @if (climateFinderOpen()) {
+      <app-climate-finder-modal
+        [answers]="climateFinderAnswers()"
+        (answerChange)="setClimateFinderAnswer($event.key, $event.value)"
+        (close)="closeClimateFinder()"
+        (apply)="applyClimateFinder()"
+      />
+    }
+  }
+</main>

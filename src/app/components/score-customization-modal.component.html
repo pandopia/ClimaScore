@@ -1,0 +1,89 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <section class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Personnaliser mon score</h2>
+        <p>
+          Ajuste les critères, puis applique le résultat ou donne un nom à ton calcul pour le sauvegarder.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="modal-close-button"
+        aria-label="Fermer la personnalisation du score"
+        (click)="close.emit()"
+      >
+        ×
+      </button>
+    </div>
+
+    <label class="field">
+      <span>Nom du calcul</span>
+      <input
+        type="text"
+        [ngModel]="presetNameDraft()"
+        (ngModelChange)="presetNameDraftChange.emit($event)"
+        placeholder="Ex: Bord de mer tempéré"
+      />
+    </label>
+
+    <div class="criteria-list modal-criteria-list">
+      @for (criterion of criteriaDefinitions(); track criterion.key) {
+        <article class="criterion-card">
+          <div class="criterion-card__top">
+            <div>
+              <h3>{{ criterion.label }}</h3>
+              <p>{{ criterion.description }}</p>
+            </div>
+
+            <label class="switch">
+              <input
+                type="checkbox"
+                [ngModel]="criteriaState()[criterion.key].enabled"
+                (ngModelChange)="enabledChange.emit({ metricKey: criterion.key, enabled: $event })"
+              />
+              <span>Actif</span>
+            </label>
+          </div>
+
+          <div class="criterion-card__controls">
+            <label class="field">
+              <span>Poids</span>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                [ngModel]="criteriaState()[criterion.key].weight"
+                (ngModelChange)="weightChange.emit({ metricKey: criterion.key, rawWeight: $event })"
+              />
+              <strong>{{ criteriaState()[criterion.key].weight }}/10</strong>
+            </label>
+
+            <label class="field">
+              <span>Sens</span>
+              <select
+                [ngModel]="criteriaState()[criterion.key].direction"
+                (ngModelChange)="directionChange.emit({ metricKey: criterion.key, direction: $event })"
+              >
+                <option value="minimize">Plus bas = mieux</option>
+                <option value="maximize">Plus haut = mieux</option>
+              </select>
+            </label>
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="modal-secondary-button" (click)="close.emit()">
+        Annuler
+      </button>
+      <button type="button" class="modal-secondary-button" (click)="apply.emit()">
+        Appliquer
+      </button>
+      <button type="button" class="modal-primary-button" (click)="save.emit()">
+        Sauvegarder ce calcul
+      </button>
+    </div>
+  </section>
+</div>

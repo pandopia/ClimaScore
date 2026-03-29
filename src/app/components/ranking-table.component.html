@@ -1,0 +1,110 @@
+<section class="panel ranking">
+  <div class="panel-header">
+    <div>
+      <h2>Classement</h2>
+      <p>{{ cities().length }} villes visibles</p>
+    </div>
+  </div>
+
+  @if (hiddenColumnCount() > 0) {
+    <div class="table-toolbar">
+      <button type="button" class="table-reset-link" (click)="hiddenColumnsReset.emit()">
+        {{ getHiddenColumnsLinkLabel() }}
+      </button>
+    </div>
+  }
+
+  <div class="table-shell">
+    <table>
+      <thead>
+        <tr>
+          @for (column of columns; track column.key) {
+            @if (!isColumnHidden(column.key)) {
+              <th [attr.title]="getColumnTooltip(column.key)">
+                <div class="column-header" [class.column-header--static]="!column.sortKey">
+                  @if (column.sortKey; as sortKey) {
+                    <button
+                      type="button"
+                      class="sort-button"
+                      [class.sort-button--active]="isSortedBy(sortKey)"
+                      (click)="sortChange.emit(sortKey)"
+                    >
+                      <span>{{ column.label }}</span>
+                      <span class="sort-indicator" aria-hidden="true">{{ getSortIndicator(sortKey) }}</span>
+                    </button>
+                  } @else {
+                    <span class="column-header__label">{{ column.label }}</span>
+                  }
+
+                  @if (canHideColumn(column.key)) {
+                    <button
+                      type="button"
+                      class="column-hide-button"
+                      [attr.aria-label]="getHideColumnLabel(column.key)"
+                      [attr.title]="getHideColumnLabel(column.key)"
+                      (click)="hideColumn(column.key, $event)"
+                    >
+                      ×
+                    </button>
+                  }
+                </div>
+              </th>
+            }
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (city of cities(); track trackBySlug($index, city)) {
+          <tr
+            [class.is-selected]="selectedSlug() === city.slug"
+            (click)="citySelect.emit(city.slug)"
+          >
+            @for (column of columns; track column.key) {
+              @if (!isColumnHidden(column.key)) {
+                <td>
+                  @switch (column.key) {
+                    @case ('favorite') {
+                      <button
+                        type="button"
+                        class="favorite-button"
+                        [class.favorite-button--active]="isFavorite(city.slug)"
+                        [attr.aria-pressed]="isFavorite(city.slug)"
+                        [attr.aria-label]="isFavorite(city.slug) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                        (click)="toggleFavorite(city.slug, $event)"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            d="M12 2.8 14.85 8.58 21.23 9.5 16.62 14 17.71 20.36 12 17.36 6.29 20.36 7.38 14 .77 9.5 9.15 8.58 12 2.8Z"
+                          />
+                        </svg>
+                      </button>
+                    }
+                    @case ('name') {
+                      <strong>{{ city.name }}</strong>
+                    }
+                    @case ('region') {
+                      {{ city.region }}
+                    }
+                    @case ('metroPopulation') {
+                      {{ formatValue(city.metroPopulation, 0) }}
+                    }
+                    @case ('score') {
+                      <span class="score">{{ city.score }}</span>
+                    }
+                    @default {
+                      {{ formatMetricValue(city, column.key, column.fractionDigits ?? 1) }}
+                    }
+                  }
+                </td>
+              }
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="tableColspan()">Aucun résultat avec les filtres actuels.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

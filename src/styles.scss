@@ -1,0 +1,36 @@
+:root {
+  --display-font: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --body-font: 'Avenir Next', 'Segoe UI', sans-serif;
+  --page-bg: #eff8fb;
+  --text-strong: #164564;
+  --text-soft: #547286;
+  --muted: #7390a2;
+  --surface: rgba(252, 255, 255, 0.82);
+  --surface-strong: rgba(248, 253, 255, 0.95);
+  --line: rgba(30, 114, 201, 0.14);
+  --line-strong: rgba(30, 114, 201, 0.24);
+  --accent-blue: #1d73c8;
+  --accent-deep: #0aa17f;
+  --accent-green: #4bc42a;
+  --accent-warm: #f4b512;
+  --accent-warm-deep: #d98f08;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: var(--body-font);
+  color: var(--text-strong);
+  background:
+    radial-gradient(circle at top left, rgba(244, 181, 18, 0.24), transparent 26%),
+    radial-gradient(circle at 82% 22%, rgba(75, 196, 42, 0.18), transparent 20%),
+    radial-gradient(circle at 14% 82%, rgba(29, 115, 200, 0.2), transparent 24%),
+    linear-gradient(180deg, #fafdff 0%, var(--page-bg) 100%);
+}
+
+* {
+  box-sizing: border-box;
+}

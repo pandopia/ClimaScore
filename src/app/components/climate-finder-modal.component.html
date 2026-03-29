@@ -1,0 +1,96 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <section class="modal-panel modal-panel--quiz" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Trouver mon climat idéal</h2>
+        <p>
+          Réponds à 5 questions et l’app ajuste automatiquement les critères et les poids.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="modal-close-button"
+        aria-label="Fermer le questionnaire climat"
+        (click)="close.emit()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="quiz-list">
+      <label class="field">
+        <span>1. Ton ciel idéal</span>
+        <select
+          [ngModel]="answers().sky"
+          (ngModelChange)="answerChange.emit({ key: 'sky', value: $event })"
+        >
+          <option value="sunny">☀️ Grand soleil la plupart du temps</option>
+          <option value="balanced">🌤️ Un bon équilibre</option>
+          <option value="cloudy">☁️ Plutôt nuageux</option>
+          <option value="covered">🌫️ Très couvert</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>2. La pluie, pour toi</span>
+        <select
+          [ngModel]="answers().rain"
+          (ngModelChange)="answerChange.emit({ key: 'rain', value: $event })"
+        >
+          <option value="avoid">🚫 Le moins possible</option>
+          <option value="sometimes">😐 De temps en temps ok</option>
+          <option value="neutral">🌧️ Ça ne me dérange pas</option>
+          <option value="love">🌧️🌧️ J’aime les climats pluvieux</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>3. Ton été idéal</span>
+        <select
+          [ngModel]="answers().summer"
+          (ngModelChange)="answerChange.emit({ key: 'summer', value: $event })"
+        >
+          <option value="very-hot">🔥 Très chaud (souvent &gt;30°C)</option>
+          <option value="warm">☀️ Chaud mais supportable</option>
+          <option value="temperate">🌤️ Tempéré</option>
+          <option value="cool">❄️ Plutôt frais</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>4. Confort global</span>
+        <select
+          [ngModel]="answers().comfort"
+          (ngModelChange)="answerChange.emit({ key: 'comfort', value: $event })"
+        >
+          <option value="calm">🧘 Très calme (peu de vent)</option>
+          <option value="comfortable">🙂 Plutôt confortable</option>
+          <option value="wind-ok">🌬️ Un peu de vent ne me dérange pas</option>
+          <option value="windy">🌪️ Dynamique / venteux</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>5. Priorité absolue</span>
+        <select
+          [ngModel]="answers().priority"
+          (ngModelChange)="answerChange.emit({ key: 'priority', value: $event })"
+        >
+          <option value="sun">☀️ Le soleil</option>
+          <option value="temperature">🌡️ La température</option>
+          <option value="rain">🌧️ Éviter la pluie</option>
+          <option value="balance">⚖️ L’équilibre global</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="modal-secondary-button" (click)="close.emit()">
+        Fermer
+      </button>
+      <button type="button" class="modal-primary-button" (click)="apply.emit()">
+        Appliquer ce profil
+      </button>
+    </div>
+  </section>
+</div>

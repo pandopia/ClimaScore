@@ -1,0 +1,40 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <section class="modal-panel modal-panel--info" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Origine des critères</h2>
+        <p>Pour chaque critère, voici la source utilisée et la période couverte.</p>
+      </div>
+      <button
+        type="button"
+        class="modal-close-button"
+        aria-label="Fermer l’origine des critères"
+        (click)="close.emit()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="criteria-info-list">
+      @for (criterion of criteriaDefinitions(); track criterion.key) {
+        <article class="criteria-info-card">
+          <div class="criteria-info-card__header">
+            <h3>{{ criterion.label }}</h3>
+            <span class="pill">{{ criterion.unit }}</span>
+          </div>
+          <p>{{ criterion.description }}</p>
+          <div class="criteria-info-meta">
+            <p><strong>Origine</strong> {{ criterion.source }}</p>
+            <p><strong>Période</strong> {{ criterion.coverage }}</p>
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="modal-primary-button" (click)="close.emit()">
+        Fermer
+      </button>
+    </div>
+  </section>
+</div>

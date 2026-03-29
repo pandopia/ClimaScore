@@ -1,0 +1,313 @@
+<aside class="panel detail">
+  @if (city(); as city) {
+    <div class="panel-header">
+      <div>
+        <h2>{{ city.name }}</h2>
+        <p>{{ city.region }} · {{ formatNumber(city.metroPopulation) }} hab.</p>
+      </div>
+      <div class="detail-header-actions">
+        <button
+          type="button"
+          class="favorite-button favorite-button--detail"
+          [class.favorite-button--active]="isFavorite(city.slug)"
+          [attr.aria-pressed]="isFavorite(city.slug)"
+          [attr.aria-label]="isFavorite(city.slug) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+          (click)="toggleFavorite(city.slug, $event)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2.8 14.85 8.58 21.23 9.5 16.62 14 17.71 20.36 12 17.36 6.29 20.36 7.38 14 .77 9.5 9.15 8.58 12 2.8Z"
+            />
+          </svg>
+        </button>
+        <span class="score score--large">{{ city.score }}</span>
+      </div>
+    </div>
+    <p class="detail-score-note">Score relatif calculé sur l’ensemble des {{ totalCityCount() }} villes.</p>
+
+    <div class="detail-grid detail-grid--single">
+      <article>
+        <span class="section-label">Station retenue</span>
+        <p>{{ city.stationName }}</p>
+        <p>{{ formatNumber(city.stationDistanceKm, 1) }} km du centre-ville</p>
+        <p>{{ formatNumber(city.dataCoverage, 1) }}% de couverture</p>
+      </article>
+    </div>
+
+    <div class="compare-card">
+      <label class="field">
+        <span>Comparer avec</span>
+        <select
+          [ngModel]="compareCity()?.slug ?? ''"
+          [disabled]="compareOptions().length === 0"
+          (ngModelChange)="selectCompareCity($event)"
+        >
+          @if (compareOptions().length === 0) {
+            <option value="">Aucune autre ville visible</option>
+          } @else {
+            @for (option of compareOptions(); track option.slug) {
+              <option [value]="option.slug">{{ option.name }}</option>
+            }
+          }
+        </select>
+      </label>
+      @if (compareCity(); as compareCity) {
+        <p class="compare-card__hint">
+          Les deltas ci-dessous comparent {{ city.name }} à {{ compareCity.name }}.
+        </p>
+      }
+    </div>
+
+    <div class="contribution-list">
+      <span class="section-label">Décomposition du score</span>
+      @for (criterion of criteriaDefinitions(); track criterion.key) {
+        <div class="contribution-row">
+          <div class="contribution-row__main">
+            <div class="contribution-row__title">
+              <strong>{{ criterion.label }}</strong>
+              @if (getMonthlyChart(criterion.key, city, compareCity()); as monthlyChart) {
+                <span class="trend-shell">
+                  <button
+                    type="button"
+                    class="trend-button"
+                    [attr.aria-label]="'Voir le graphe mensuel pour ' + criterion.label"
+                    [attr.title]="'Voir le graphe mensuel pour ' + criterion.label"
+                    (mouseenter)="showTrendPreview(criterion.key, $event.currentTarget)"
+                    (mouseleave)="hideTrendPreview()"
+                    (focus)="showTrendPreview(criterion.key, $event.currentTarget)"
+                    (blur)="hideTrendPreview()"
+                    (click)="openTrend(criterion.key, $event)"
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path
+                        d="M2.5 12.5h11m-9-2.25 2.35-2.75 2.1 1.7 3.05-4.2"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              }
+            </div>
+
+            <p>
+              {{ formatNumber(city.contributions[criterion.key].rawValue, 1) }}
+              {{ criterion.unit }}
+              @if (compareCity(); as compareCity) {
+                <span
+                  class="delta-pill"
+                  [class.delta-pill--positive]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'positive'"
+                  [class.delta-pill--negative]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'negative'"
+                  [class.delta-pill--neutral]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'neutral'"
+                  [class.delta-pill--inactive]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'inactive'"
+                >
+                  ({{ formatSignedDelta(getCriterionDelta(criterion.key, city, compareCity), 1) }})
+                </span>
+              }
+            </p>
+          </div>
+
+          <div class="contribution-row__meta">
+            <span>
+              {{
+                city.contributions[criterion.key].enabled
+                  ? 'Poids ' + city.contributions[criterion.key].weight
+                  : 'Ignoré'
+              }}
+            </span>
+            <strong>{{ formatNumber(city.contributions[criterion.key].score * 100, 1) }}/100</strong>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-detail">
+      <h2>Aucune ville sélectionnée</h2>
+      <p>Ajuste les filtres ou choisis une ligne du classement.</p>
+    </div>
+  }
+
+  @if (prefersHoverTrend() && hoverTrendCriterion(); as criterion) {
+    @if (hoverTrendChart(); as monthlyChart) {
+      <section
+        class="trend-popover"
+        [style.top.px]="hoverTrend()?.top"
+        [style.left.px]="hoverTrend()?.left"
+        aria-hidden="true"
+      >
+        <div class="trend-popover__header">
+          <div>
+            <strong>{{ criterion.label }}</strong>
+            <span>{{ monthlyChart.periodLabel }} · {{ criterion.unit }}</span>
+          </div>
+        </div>
+
+        <span class="trend-legend">
+          @for (line of monthlyChart.lines; track line.label) {
+            <span class="trend-legend__item">
+              <span class="trend-legend__swatch" [style.background]="line.color"></span>
+              <span>{{ line.label }}</span>
+            </span>
+          }
+        </span>
+
+        <svg
+          class="trend-chart trend-chart--popover"
+          [attr.viewBox]="monthlyChart.viewBox"
+          role="img"
+          [attr.aria-label]="'Evolution mensuelle pour ' + criterion.label"
+        >
+          <line
+            [attr.x1]="monthlyChart.yAxisX"
+            [attr.x2]="monthlyChart.yAxisX"
+            y1="12"
+            [attr.y2]="monthlyChart.xAxisY"
+            class="trend-chart__axis"
+          />
+          <line
+            [attr.x1]="monthlyChart.chartLeft"
+            [attr.x2]="monthlyChart.chartRight"
+            [attr.y1]="monthlyChart.xAxisY"
+            [attr.y2]="monthlyChart.xAxisY"
+            class="trend-chart__axis trend-chart__axis--soft"
+          />
+
+          @for (gridLine of monthlyChart.gridLines; track gridLine) {
+            <line
+              x1="20"
+              x2="254"
+              [attr.y1]="gridLine"
+              [attr.y2]="gridLine"
+              class="trend-chart__grid"
+            />
+          }
+
+          @for (tick of monthlyChart.yAxisTicks; track tick.label) {
+            <text x="14" [attr.y]="tick.y + 3" text-anchor="end" class="trend-chart__tick">
+              {{ tick.label }}
+            </text>
+          }
+
+          @for (line of monthlyChart.lines; track line.label) {
+            <path
+              [attr.d]="line.path"
+              [attr.stroke]="line.color"
+              class="trend-chart__line"
+            />
+          }
+
+          @for (month of monthlyChart.monthLabels; track month.label) {
+            <text [attr.x]="month.x" y="156" text-anchor="middle" class="trend-chart__month">
+              {{ month.label }}
+            </text>
+          }
+        </svg>
+      </section>
+    }
+  }
+
+  @if (trendCriterion(); as criterion) {
+    <div class="modal-backdrop" (click)="closeTrend()">
+      <section class="modal-panel modal-panel--trend" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>{{ criterion.label }}</h2>
+            @if (trendChart(); as monthlyChart) {
+              <p>{{ monthlyChart.periodLabel }} · {{ criterion.unit }}</p>
+            }
+          </div>
+          <button
+            type="button"
+            class="modal-close-button"
+            [attr.aria-label]="'Fermer le graphe mensuel pour ' + criterion.label"
+            (click)="closeTrend()"
+          >
+            ×
+          </button>
+        </div>
+
+        @if (trendChart(); as monthlyChart) {
+          <span class="trend-legend">
+            @for (line of monthlyChart.lines; track line.label) {
+              <span class="trend-legend__item">
+                <span class="trend-legend__swatch" [style.background]="line.color"></span>
+                <span>{{ line.label }}</span>
+              </span>
+            }
+          </span>
+
+          <svg
+            class="trend-chart trend-chart--modal"
+            [attr.viewBox]="monthlyChart.viewBox"
+            role="img"
+            [attr.aria-label]="'Evolution mensuelle pour ' + criterion.label"
+          >
+            <line
+              [attr.x1]="monthlyChart.yAxisX"
+              [attr.x2]="monthlyChart.yAxisX"
+              y1="12"
+              [attr.y2]="monthlyChart.xAxisY"
+              class="trend-chart__axis"
+            />
+            <line
+              [attr.x1]="monthlyChart.chartLeft"
+              [attr.x2]="monthlyChart.chartRight"
+              [attr.y1]="monthlyChart.xAxisY"
+              [attr.y2]="monthlyChart.xAxisY"
+              class="trend-chart__axis trend-chart__axis--soft"
+            />
+
+            @for (gridLine of monthlyChart.gridLines; track gridLine) {
+              <line
+                x1="20"
+                x2="254"
+                [attr.y1]="gridLine"
+                [attr.y2]="gridLine"
+                class="trend-chart__grid"
+              />
+            }
+
+            @for (tick of monthlyChart.yAxisTicks; track tick.label) {
+              <text
+                x="14"
+                [attr.y]="tick.y + 3"
+                text-anchor="end"
+                class="trend-chart__tick"
+              >
+                {{ tick.label }}
+              </text>
+            }
+
+            @for (line of monthlyChart.lines; track line.label) {
+              <path
+                [attr.d]="line.path"
+                [attr.stroke]="line.color"
+                class="trend-chart__line"
+              />
+            }
+
+            @for (month of monthlyChart.monthLabels; track month.label) {
+              <text
+                [attr.x]="month.x"
+                y="156"
+                text-anchor="middle"
+                class="trend-chart__month"
+              >
+                {{ month.label }}
+              </text>
+            }
+          </svg>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="modal-primary-button" (click)="closeTrend()">
+            Fermer
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</aside>

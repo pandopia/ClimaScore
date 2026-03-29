@@ -1,0 +1,88 @@
+<aside class="panel controls">
+  <div class="panel-header">
+    <div class="panel-header__title">
+      <h2>Filtres et score</h2>
+      @if (criteriaAvailable()) {
+        <button
+          type="button"
+          class="info-button"
+          aria-label="Voir l’origine des critères"
+          title="Voir l’origine des critères"
+          (click)="criteriaInfoOpen.emit()"
+        >
+          ?
+        </button>
+      }
+    </div>
+    <div>
+      <p>{{ activeCriteriaCount() }} critères actifs</p>
+    </div>
+  </div>
+
+  <label class="field">
+    <span>Recherche</span>
+    <input
+      type="search"
+      [ngModel]="query()"
+      (ngModelChange)="queryChange.emit($event)"
+      placeholder="Ex: Pau, Brest, Caen"
+    />
+  </label>
+
+  <div class="toggle-row">
+    <label>
+      <input
+        type="checkbox"
+        [ngModel]="showOnlyFavorites()"
+        (ngModelChange)="showOnlyFavoritesChange.emit($event)"
+      />
+      <span>Favoris seulement ({{ favoriteCount() }})</span>
+    </label>
+  </div>
+
+  <div class="preset-list">
+    <span class="section-label">Calcul du score</span>
+    @for (preset of presets(); track preset.id) {
+      <div class="preset-row">
+        <button
+          type="button"
+          class="preset-chip"
+          [class.preset-chip--active]="selectedPresetId() === preset.id"
+          (click)="presetSelect.emit(preset.id)"
+        >
+          {{ preset.label }}
+        </button>
+        @if (canDeletePreset(preset)) {
+          <button
+            type="button"
+            class="preset-delete-button"
+            [attr.aria-label]="'Supprimer le calcul ' + preset.label"
+            [attr.title]="'Supprimer le calcul ' + preset.label"
+            (click)="deletePreset(preset.id, $event)"
+          >
+            ×
+          </button>
+        }
+      </div>
+    }
+
+    <div class="score-actions">
+      <button type="button" class="preset-save-button" (click)="scoreCustomizationOpen.emit()">
+        Personnaliser mon score
+      </button>
+      <button type="button" class="preset-save-button" (click)="climateFinderOpen.emit()">
+        Trouver mon climat idéal
+      </button>
+    </div>
+
+    @if (presetFeedback()) {
+      <p
+        class="preset-feedback"
+        [class.preset-feedback--error]="presetFeedbackKind() === 'error'"
+        [class.preset-feedback--success]="presetFeedbackKind() === 'success'"
+      >
+        {{ presetFeedback() }}
+      </p>
+    }
+  </div>
+</aside>

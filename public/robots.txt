@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cyrilbele.github.io/meteoweight/sitemap.xml
