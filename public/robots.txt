@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cyrilbele.github.io/meteoweight/sitemap.xml
+Sitemap: https://pandopia.github.io/ClimaScore/sitemap.xml
