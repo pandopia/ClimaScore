@@ -106,6 +106,7 @@ p {
 .layout {
   display: grid;
   grid-template-columns: 360px minmax(0, 1.5fr) minmax(300px, 0.9fr);
+  grid-template-areas: 'controls ranking detail';
   gap: 20px;
   align-items: start;
 }
@@ -115,6 +116,18 @@ app-ranking-table,
 app-city-detail {
   display: block;
   min-width: 0;
+}
+
+.layout > app-controls-panel {
+  grid-area: controls;
+}
+
+.layout > app-ranking-table {
+  grid-area: ranking;
+}
+
+.layout > app-city-detail {
+  grid-area: detail;
 }
 
 .panel,
@@ -955,10 +968,12 @@ tbody tr.is-selected {
 @media (max-width: 1320px) {
   .layout {
     grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-areas:
+      'controls ranking'
+      'detail ranking';
   }
 
   .detail {
-    grid-column: 1 / -1;
     position: static;
   }
 }
@@ -975,6 +990,10 @@ tbody tr.is-selected {
   .hero,
   .layout {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'controls'
+      'ranking'
+      'detail';
     display: grid;
   }
 
