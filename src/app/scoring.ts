@@ -1,4 +1,13 @@
-import { CityMetric, Contribution, CriterionState, DashboardMeta, MetricKey, ScoredCity, SortKey } from './types';
+import {
+  CityMetric,
+  Contribution,
+  CriterionState,
+  DashboardMeta,
+  MetricKey,
+  ScoredCity,
+  ScoreDirection,
+  SortKey
+} from './types';
 
 export function cloneCriteria(source: Record<MetricKey, CriterionState>): Record<MetricKey, CriterionState> {
   return Object.fromEntries(
@@ -14,11 +23,33 @@ export function getInitialCriteria(meta: DashboardMeta) {
   return cloneCriteria(getDefaultPreset(meta).criteria);
 }
 
-function computeBounds(cities: CityMetric[], metricKey: MetricKey) {
+export interface MetricStats {
+  min: number;
+  max: number;
+  mean: number;
+  maxDistanceFromMean: number;
+}
+
+export function computeMetricStats(cities: CityMetric[], metricKey: MetricKey): MetricStats {
+  if (!cities.length) {
+    return {
+      min: 0,
+      max: 0,
+      mean: 0,
+      maxDistanceFromMean: 0
+    };
+  }
+
   const values = cities.map((city) => city[metricKey]);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const mean = values.reduce((total, value) => total + value, 0) / values.length;
+
   return {
-    min: Math.min(...values),
-    max: Math.max(...values)
+    min,
+    max,
+    mean,
+    maxDistanceFromMean: Math.max(Math.abs(min - mean), Math.abs(max - mean))
   };
 }
 
@@ -28,6 +59,19 @@ function normalizeValue(value: number, min: number, max: number) {
   }
 
   return (value - min) / (max - min);
+}
+
+export function scoreMetricValue(value: number, direction: ScoreDirection, stats: MetricStats) {
+  if (direction === 'average') {
+    if (stats.maxDistanceFromMean === 0) {
+      return 1;
+    }
+
+    return Math.max(0, 1 - Math.abs(value - stats.mean) / stats.maxDistanceFromMean);
+  }
+
+  const baseScore = normalizeValue(value, stats.min, stats.max);
+  return direction === 'maximize' ? baseScore : 1 - baseScore;
 }
 
 export function scoreCities(
@@ -40,9 +84,9 @@ export function scoreCities(
     return [];
   }
 
-  const bounds = Object.fromEntries(
-    meta.criteria.map((criterion) => [criterion.key, computeBounds(referenceCities, criterion.key)])
-  ) as Record<MetricKey, { min: number; max: number }>;
+  const metricStats = Object.fromEntries(
+    meta.criteria.map((criterion) => [criterion.key, computeMetricStats(referenceCities, criterion.key)])
+  ) as Record<MetricKey, MetricStats>;
 
   return cities.map((city) => {
     let weightedTotal = 0;
@@ -51,10 +95,8 @@ export function scoreCities(
     const contributions = Object.fromEntries(
       meta.criteria.map((criterion) => {
         const criterionState = criteria[criterion.key];
-        const { min, max } = bounds[criterion.key];
         const rawValue = city[criterion.key];
-        const baseScore = normalizeValue(rawValue, min, max);
-        const normalizedScore = criterionState.direction === 'maximize' ? baseScore : 1 - baseScore;
+        const normalizedScore = scoreMetricValue(rawValue, criterionState.direction, metricStats[criterion.key]);
 
         if (criterionState.enabled && criterionState.weight > 0) {
           weightedTotal += normalizedScore * criterionState.weight;

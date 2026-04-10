@@ -86,7 +86,9 @@ function normalizeCriterionState(rawValue: unknown, fallback: CriterionState): C
     enabled: typeof rawValue['enabled'] === 'boolean' ? rawValue['enabled'] : fallback.enabled,
     weight,
     direction:
-      rawValue['direction'] === 'maximize' || rawValue['direction'] === 'minimize'
+      rawValue['direction'] === 'maximize' ||
+      rawValue['direction'] === 'minimize' ||
+      rawValue['direction'] === 'average'
         ? rawValue['direction']
         : fallback.direction
   };

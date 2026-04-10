@@ -24,7 +24,11 @@ function serializeCriteria(criteria: Record<MetricKey, CriterionState>) {
   const compact = Object.fromEntries(
     Object.entries(criteria).map(([key, value]) => [
       key,
-      [value.enabled ? 1 : 0, value.weight, value.direction === 'maximize' ? 'max' : 'min']
+      [
+        value.enabled ? 1 : 0,
+        value.weight,
+        value.direction === 'maximize' ? 'max' : value.direction === 'average' ? 'avg' : 'min'
+      ]
     ])
   );
 
@@ -51,7 +55,7 @@ function deserializeCriteria(
           {
             enabled: rawValue[0] === 1,
             weight: Number.isFinite(rawWeight) ? Math.max(0, Math.min(10, Math.round(rawWeight))) : fallback.weight,
-            direction: rawValue[2] === 'max' ? 'maximize' : 'minimize'
+            direction: rawValue[2] === 'max' ? 'maximize' : rawValue[2] === 'avg' ? 'average' : 'minimize'
           }
         ];
       })

@@ -20,6 +20,7 @@ import {
   DashboardMeta,
   MetricKey,
   ScoredCity,
+  ScoreDirection,
   ScorePreset,
   SortKey,
   TableColumnKey,
@@ -410,7 +411,7 @@ export class App {
     this.setCustomCriteria(nextCriteria);
   }
 
-  updateDirection(metricKey: MetricKey, direction: 'minimize' | 'maximize') {
+  updateDirection(metricKey: MetricKey, direction: ScoreDirection) {
     const criteria = this.scoreCustomizationOpen() ? this.draftCriteria() : this.criteria();
     const nextCriteria = {
       ...criteria,

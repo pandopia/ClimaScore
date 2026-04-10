@@ -10,7 +10,7 @@ export type MetricKey =
   | 'humidityAvg'
   | 'summerMaxTempAvg';
 
-export type ScoreDirection = 'minimize' | 'maximize';
+export type ScoreDirection = 'minimize' | 'maximize' | 'average';
 export type TableColumnKey = 'favorite' | 'name' | 'region' | 'metroPopulation' | 'score' | MetricKey;
 
 export type MonthlyMetricSeries = Record<MetricKey, Array<number | null>>;

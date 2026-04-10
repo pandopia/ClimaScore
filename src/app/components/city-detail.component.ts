@@ -2,6 +2,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { FormsModule } from '@angular/forms';
 import { formatNumber } from '../formatters';
 import { createMonthlyChart } from '../monthly-chart';
+import { computeMetricStats } from '../scoring';
 import { CityMetric, CriterionDefinition, CriterionState, MetricKey, ScoredCity } from '../types';
 
 interface TrendPreviewState {
@@ -31,6 +32,7 @@ export class CityDetailComponent {
   readonly city = input<ScoredCity | null>(null);
   readonly compareCity = input<CityMetric | null>(null);
   readonly compareOptions = input<CityMetric[]>([]);
+  readonly referenceCities = input<CityMetric[]>([]);
   readonly criteriaDefinitions = input<CriterionDefinition[]>([]);
   readonly criteriaState = input<Record<MetricKey, CriterionState>>({} as Record<MetricKey, CriterionState>);
   readonly favorites = input<Set<string>>(new Set());
@@ -168,14 +170,32 @@ export class CityDetailComponent {
     return `${value > 0 ? '+' : '-'}${formatted}`;
   }
 
-  getDeltaTone(metricKey: MetricKey, delta: number | null) {
+  getDeltaTone(metricKey: MetricKey, city: CityMetric, compareCity: CityMetric | null) {
     const criterionState = this.criteriaState()[metricKey];
     if (!criterionState?.enabled || criterionState.weight <= 0) {
       return 'inactive';
     }
 
+    if (!compareCity) {
+      return 'neutral';
+    }
+
+    const delta = this.getCriterionDelta(metricKey, city, compareCity);
     if (delta === null || delta === 0) {
       return 'neutral';
+    }
+
+    if (criterionState.direction === 'average') {
+      const referenceCities = this.referenceCities();
+      const stats = computeMetricStats(referenceCities.length ? referenceCities : [city, compareCity], metricKey);
+      const cityDistance = Math.abs(city[metricKey] - stats.mean);
+      const compareDistance = Math.abs(compareCity[metricKey] - stats.mean);
+
+      if (cityDistance === compareDistance) {
+        return 'neutral';
+      }
+
+      return cityDistance < compareDistance ? 'positive' : 'negative';
     }
 
     if (criterionState.direction === 'minimize') {

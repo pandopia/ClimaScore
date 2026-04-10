@@ -99,10 +99,10 @@
               @if (compareCity(); as compareCity) {
                 <span
                   class="delta-pill"
-                  [class.delta-pill--positive]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'positive'"
-                  [class.delta-pill--negative]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'negative'"
-                  [class.delta-pill--neutral]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'neutral'"
-                  [class.delta-pill--inactive]="getDeltaTone(criterion.key, getCriterionDelta(criterion.key, city, compareCity)) === 'inactive'"
+                  [class.delta-pill--positive]="getDeltaTone(criterion.key, city, compareCity) === 'positive'"
+                  [class.delta-pill--negative]="getDeltaTone(criterion.key, city, compareCity) === 'negative'"
+                  [class.delta-pill--neutral]="getDeltaTone(criterion.key, city, compareCity) === 'neutral'"
+                  [class.delta-pill--inactive]="getDeltaTone(criterion.key, city, compareCity) === 'inactive'"
                 >
                   ({{ formatSignedDelta(getCriterionDelta(criterion.key, city, compareCity), 1) }})
                 </span>

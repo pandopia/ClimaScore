@@ -205,4 +205,48 @@ describe('scoreCities', () => {
 
     expect(ranked[0].score).toBe(0);
   });
+
+  it('favors values closest to the mean when a criterion uses average direction', () => {
+    const criteria = getInitialCriteria(meta);
+    criteria.sunnyDaysAvg = {
+      enabled: true,
+      weight: 10,
+      direction: 'average'
+    };
+
+    const averageCities: CityMetric[] = [
+      {
+        ...cities[0],
+        slug: 'low',
+        name: 'Low',
+        sunnyDaysAvg: 0
+      },
+      {
+        ...cities[0],
+        slug: 'mid',
+        name: 'Mid',
+        sunnyDaysAvg: 50
+      },
+      {
+        ...cities[0],
+        slug: 'high',
+        name: 'High',
+        sunnyDaysAvg: 100
+      }
+    ];
+
+    const ranked = scoreCities(
+      averageCities,
+      criteria,
+      {
+        ...meta,
+        rowCount: averageCities.length
+      },
+      averageCities
+    );
+
+    expect(ranked.find((city) => city.slug === 'mid')?.score).toBe(100);
+    expect(ranked.find((city) => city.slug === 'low')?.score).toBe(0);
+    expect(ranked.find((city) => city.slug === 'high')?.score).toBe(0);
+  });
 });
